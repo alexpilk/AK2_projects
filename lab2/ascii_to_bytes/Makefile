@@ -1,7 +1,8 @@
+
 .PHONY : clean run
 .DEFAULT_GOAL := build
 
-NAME = reverse
+NAME = convert
 OUTPUT_DIR = bin
 OUTPUT_PATH = ${OUTPUT_DIR}/${NAME}
 
@@ -11,7 +12,7 @@ ${NAME}.o: ${NAME}.s
 	mkdir -p ${OUTPUT_DIR}
 	as -g -o ${OUTPUT_PATH}.o ${NAME}.s
 
-clean:
+clean :
 	-rm -rf ${OUTPUT_DIR}
 run:
 	./${OUTPUT_PATH}
