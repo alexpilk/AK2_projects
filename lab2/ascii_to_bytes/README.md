@@ -1,4 +1,4 @@
-# Printing `Hello world!` in reverse order
+# Converting string from ASCII characters to bytes
 Clean: `make clean`  
 Build: `make`  
 Run: `make run`  
