@@ -1,5 +1,3 @@
 # Lab 2
-## Printing `helLe wORld\n` in reverse order
-Compile: `make`  
-Run: `./a`  
-Compile and run: `./run.sh`
+1. Printing a string in reverse order
+2. Converting ASCII characters to bytes

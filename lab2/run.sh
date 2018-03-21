@@ -1,3 +1,0 @@
-rm a
-make
-./a

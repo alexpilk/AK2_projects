@@ -6,7 +6,7 @@ EXIT_SUCCESS = 0
 
 .data
 hello:
-	.string "helLe wORld\n"
+	.string "Hello world!"
 
 .globl	_start
 
@@ -27,11 +27,11 @@ _start:
 	add	$1, %edi
 
 	cmp $6, %esi
-    	je end
+    je end
 
-    	jmp myloop
+    jmp myloop
 
-    	end:
+    end:
 	movl	$SYSWRITE,%eax
 	movl	$STDOUT,%ebx
 	movl	$hello,%ecx
