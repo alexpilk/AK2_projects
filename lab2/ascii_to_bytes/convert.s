@@ -7,7 +7,6 @@ SUCCESS_CODE = 0
 .data
 msg: .ascii "Hello Worlds!!!"
 msg_len = . - msg
-bufor: .long
 buffer: .ascii ""
  
 .text
@@ -32,7 +31,7 @@ mov $0, %edx   # write 0 to 'remainder' register
 mov $10, %ebx  # set divisor to 10
 div %ebx       # divide eax by 10
 add $48, %edx  # add 48 (index of 0 in ascii) to the remainder (edx)
-mov %edx, buffer(,%esi,1)  # store edx on 'esi' index in bufor
+mov %edx, buffer(,%esi,1)  # store edx on 'esi' index in buffer
 inc %esi  # add 1 to 'esi'
 inc %ebp
 cmp $0, %eax  # if eax (quotient) == 0 after division --> get_next_char
@@ -41,15 +40,14 @@ jmp convert_char_to_numbers  # if there are more numbers for ascii character -->
 
 get_next_char:
 mov $32, %edx  # write 'space' character to edx
-mov %edx, buffer(,%esi,1)  # put 'space' into bufor after the last character converted
+mov %edx, buffer(,%esi,1)  # put 'space' into buffer after the last character converted
 inc %esi   # increment buffer index
 dec %edi   # decrement main message index
 cmp $0, %edi
 jl reverse_buffer  # if 'edi' < 0 (iteration over message is finished) --> reverse buffer
 movb msg(,%edi,1), %dh  # else move next char to eax
 movzb %dh, %eax
-jmp convert_char_to_numbers  # convert char to numbers and add to bufor
-
+jmp convert_char_to_numbers  # convert char to numbers and add to buffer
 
 reverse_buffer:
 # 'edi' iterates from 0 upwards, 'esi' - from buffer length downwards
