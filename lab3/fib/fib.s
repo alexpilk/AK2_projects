@@ -4,8 +4,8 @@ SYSWRITE = 4
 STDOUT = 1
 SUCCESS_CODE = 0
 
-# 47 correctly outputs 0xb1    0x19    0x24    0xe1
-# which is 2971215073
+# For $N = 47 program correctly outputs:    0xb1    0x19    0x24    0xe1
+# which is 2971215073 in decimal
 # It is the largest fibonacci number that can be represented on 4 bytes
 BYTES_AVAILABLE = 4
 N = 47
