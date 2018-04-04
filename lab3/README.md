@@ -1,3 +1,2 @@
-# Lab 2
-1. Printing a string in reverse order
-2. Converting ASCII characters to bytes
+# Lab 3
+1. Counting fibonacci numbers in big endian format
