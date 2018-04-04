@@ -17,3 +17,5 @@ clean :
 run:
 	./${OUTPUT_PATH}
 all: clean build run
+debug: clean build
+	gdb ${OUTPUT_PATH}
