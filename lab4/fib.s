@@ -1,42 +1,28 @@
-SYSEXIT = 1
-SYSREAD = 3
-SYSWRITE = 4
-STDOUT = 1
-EXIT_SUCCESS = 0
-# A program to be called from a C program
-# Declaring data that doesn't change
-# .section .data
-#     string: .ascii  "Hello from assembler\n"
-#     length: .quad   . - string
-#     buffer: .ascii ""
-#     hello:
-#         .string "helLo wORld\n"
+.global get_timestamp
 
-# The actual code
-.section .text
-.global as_print
-.type as_print, @function              #<-Important
 
-as_print:
-    pop     %esi
-    xor     %eax, %eax  # reset %eax
-    cpuid
-    # rdtsc
-    # mov     $255, %edx
-    
-    #popl %ebx
-    #popl %esi
-    #popl %edi
-    mov     %edi, %eax
-    leave
-    
-    # movl    $SYSWRITE,%eax
+get_timestamp:
+pushl %ebp  # save frame pointer (%ebp) on the stack
+movl %esp, %ebp
+movl 8(%esp), %edx  # move first argument to %edx
+movl $48, %eax  # ascii character for '0'
+cmp %eax, %edx
+je _rdtsc  # if switch == 0 go to rdtsc
+jmp _rdtscp # if switch == 1 go to rdtscp
 
-    # mov    $hello, %edi
-    # mov $0, %esi
-    # movb    $3,(%edi,%esi)
-    # movl    $STDOUT,%ebx
-    # movl    %edi,%ecx
-    # movl    $12,%edx
-    # int     $0x80
-    ret
+_rdtsc:
+xor %eax, %eax
+xor %edx, %edx
+cpuid
+rdtsc
+jmp exit
+
+_rdtscp:
+xor %eax, %eax
+xor %edx, %edx
+rdtscp
+jmp exit
+
+exit:
+leave  # restore frame pointer (same as "pop %ebp")
+ret
