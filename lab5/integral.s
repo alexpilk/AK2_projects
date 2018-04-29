@@ -3,13 +3,15 @@ SYSREAD = 3
 SYSWRITE = 4
 STDOUT = 1
 SUCCESS_CODE = 0
+REAL_N = 250
 
 .data
 x: .float 34.4
 const_b: .float 2
 A: .float 1
-B: .float 6
-N: .float 10  # number of rectangles
+B: .float 9
+N: .float 250  # number of rectangles
+zero: .float 0  # number of rectangles
 
 .global _start
 
@@ -17,6 +19,7 @@ N: .float 10  # number of rectangles
 st0 - ongoing operations
 st1 - rectangle width
 st2 - accumulating area
+st3 - current x
 */
 
 _start:
@@ -35,15 +38,33 @@ ret  # stores result in st0
 
 process_rectangles:
 mov $x, %eax
+
+fmul zero
+fst %st(2)
+fadd A
+
+xor %ecx, %ecx # counts rectangles
+loop:
+fst %st(3)
 call parabol
 call get_area
-fst %st(2)  # put area into %st2
-jmp exit
+fadd %st(0), %st(2)  # put area into %st2
+
+inc %ecx
+cmp $REAL_N, %ecx
+je exit
+
+fmul zero
+fadd %st(3), %st(0)
+#fld %st(3)
+fadd %st(1), %st(0)
+jmp loop
 
 
 parabol:
-fld (%eax) # put x into st0
-fmul (%eax) # x^2
+#fld (%eax) # put x into st0
+#fmul (%eax) # x^2
+fmul %st(0) # x^2
 fsub const_b  # subtract b factor
 ret
 
