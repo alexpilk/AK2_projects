@@ -4,23 +4,25 @@ SYSWRITE = 4
 STDOUT = 1
 SUCCESS_CODE = 0
 
-# For $N = 47 program correctly outputs:    0xb1    0x19    0x24    0xe1
-# which is 2971215073 in decimal
-# It is the largest fibonacci number that can be represented on 4 bytes
-
 .data
 x: .float 34.4
 const_b: .float 2
 A: .float 1
 B: .float 6
-N: .float 10
-rect_width: .float
+N: .float 10  # number of rectangles
 
 .global _start
 
+/*
+st0 - ongoing operations
+st1 - rectangle width
+st2 - accumulating area
+*/
 
 _start:
-jmp get_rectangle_width
+call get_rectangle_width
+fst %st(1)  # put rect width into %st1
+call process_rectangles
 
 
 get_rectangle_width:
@@ -28,26 +30,27 @@ mov $B, %eax
 fld (%eax)
 fsub A
 fdiv N
-jmp process_rectangles
+ret  # stores result in st0
 
 
 process_rectangles:
-fstp rect_width
-mov $A, %ecx
 mov $x, %eax
-jmp parabol
-
-
-get_area:
-fmul rect_width
+call parabol
+call get_area
+fst %st(2)  # put area into %st2
 jmp exit
 
 
 parabol:
-fld (%eax)
-fmul (%eax)
-fsub const_b
-jmp get_area
+fld (%eax) # put x into st0
+fmul (%eax) # x^2
+fsub const_b  # subtract b factor
+ret
+
+
+get_area:
+fmul %st(1)
+ret
 
 
 exit:
