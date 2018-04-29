@@ -3,24 +3,29 @@ SYSREAD = 3
 SYSWRITE = 4
 STDOUT = 1
 SUCCESS_CODE = 0
-
-# For $N = 47 program correctly outputs:    0xb1    0x19    0x24    0xe1
-# which is 2971215073 in decimal
-# It is the largest fibonacci number that can be represented on 4 bytes
+REAL_N = 250
 
 .data
 x: .float 34.4
 const_b: .float 2
 A: .float 1
-B: .float 6
-N: .float 10
-rect_width: .float
+B: .float 9
+N: .float 250  # number of rectangles
+zero: .float 0  # number of rectangles
 
 .global _start
 
+/*
+st0 - ongoing operations
+st1 - rectangle width
+st2 - accumulating area
+st3 - current x
+*/
 
 _start:
-jmp get_rectangle_width
+call get_rectangle_width
+fst %st(1)  # put rect width into %st1
+call process_rectangles
 
 
 get_rectangle_width:
@@ -28,26 +33,54 @@ mov $B, %eax
 fld (%eax)
 fsub A
 fdiv N
-jmp process_rectangles
+ret  # stores result in st0
 
 
 process_rectangles:
-fstp rect_width
-mov $A, %ecx
 mov $x, %eax
-jmp parabol
 
+fmul zero
+fst %st(2)
+fadd A
 
-get_area:
-fmul rect_width
-jmp exit
+xor %ecx, %ecx # counts rectangles
+
+loop:
+fst %st(3)
+call parabol
+call get_area
+fadd %st(0), %st(2)  # put area into %st2
+
+inc %ecx
+#cmp $REAL_N, %ecx
+
+fmul zero
+fadd %st(3), %st(0)
+fcom B
+fstsw %ax          #copy the Status Word containing the result to AX
+fwait             #insure the previous instruction is completed
+sahf
+ja exit
+#jge exit
+
+fmul zero
+fadd %st(3), %st(0)
+#fld %st(3)
+fadd %st(1), %st(0)
+jmp loop
 
 
 parabol:
-fld (%eax)
-fmul (%eax)
-fsub const_b
-jmp get_area
+#fld (%eax) # put x into st0
+#fmul (%eax) # x^2
+fmul %st(0) # x^2
+fsub const_b  # subtract b factor
+ret
+
+
+get_area:
+fmul %st(1)
+ret
 
 
 exit:
