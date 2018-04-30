@@ -1,33 +1,26 @@
-SYSEXIT = 1
-SYSREAD = 3
-SYSWRITE = 4
-STDOUT = 1
-SUCCESS_CODE = 0
-
 .data
 const_b: .float 2
-A: .float 1
-B: .float 90
-N: .float 999999  # number of rectangles
+A: .float 0
+B: .float 0
+N: .float 0  # number of rectangles
 result: .float
 zero: .float 0  # number of rectangles
 one: .float 1
 
-.global start
+.global calculate_integral
 
 /*
 st0 - ongoing operations
 st1 - rectangle width
-st2 - accumulating area
-st3 - current x
+st2 - accumulated area
+st3 - current X
 st6 - counter
 */
 
-start:
-
+calculate_integral:
 pushl %ebp  # save frame pointer (%ebp) on the stack
 movl %esp, %ebp
-
+# Collect arguments
 movl 8(%esp), %edx
 movl %edx, A
 movl 12(%esp), %edx
@@ -36,75 +29,56 @@ movl 16(%esp), %edx
 movl %edx, N
 
 call get_rectangle_width
-fst %st(1)  # put rect width into %st1
+fst %st(1)  # put rectangle width into %st1
 call process_rectangles
-fld %st(2)
-fst result
-mov $result, %eax
+fld %st(2)  # load accumulated area into %st0
+fst result  # store %st0 value in $result
+mov $result, %eax  # copy result to return address
 
 leave
 ret
-#	movl	$SYSWRITE,%eax
-#	movl	$STDOUT,%ebx
-#	movl	$result,%ecx
-#	movl	$12,%edx
-#	int	    $0x80
-
-#mov $SYSEXIT, %eax
-#mov $0, %ebx
-#int $0x80
 
 
 get_rectangle_width:
-mov $B, %eax
-fld (%eax)
-fsub A
-fdiv N
-ret  # stores result in st0
+fld B  # load B into %st0
+fsub A  # subtract starting point (A) from ending point (B)
+fdiv N  # divide by the number of rectangles
+ret  # store result in %st0
 
 
 process_rectangles:
-fmul zero
-fst %st(2)
-fst %st(6)
-fadd A
+fmul zero  # zero out %st0
+fst %st(2)  # zero out %st2
+fst %st(6)  # zero out %st6
+fadd A  # put starting point A into %st0 (this is the first X value)
 
-xor %ecx, %ecx # counts rectangles
-
-loop:
-fst %st(3)
+area_accumulation_loop:
+fst %st(3)  # copy last X value into %st3
 call parabol
 call get_area
 fadd %st(0), %st(2)  # put area into %st2
 
-inc %ecx
+fmul zero  # zero out %st0
+fadd %st(6)  # copy counter %st6 into %st0
+fadd one  # increment the counter
+fst %st(6)  # put it back into %st6
 
-fmul zero
-fadd %st(6)
-fadd one
-fst %st(6)
-#cmp $REAL_N, %ecx
-
-fmul zero
-fadd %st(6), %st(0)
 # FCOM example: http://www.website.masmforum.com/tutorials/fptute/fpuchap7.htm#fcom
-fcom N
-fstsw %ax          #copy the Status Word containing the result to AX
-fwait             #insure the previous instruction is completed
+fcom N  # compare current counter in 5st0 to number of rectangles
+fstsw %ax  # copy the Status Word containing the result to AX
+fwait  # insure the previous instruction is completed
 sahf
-jz exit
-#jge exit
+jz exit  # if counter == number of rectangles: exit
+#jge exit  # this can be usedinstead of jz to add a rectangle in the end
 
-fmul zero
-fadd %st(3), %st(0)
-#fld %st(3)
-fadd %st(1), %st(0)
-jmp loop
+# otherwise if counter < number of rectangles:
+fmul zero  # zero out %st0
+fadd %st(3), %st(0)  # put last X into %st0
+fadd %st(1), %st(0)  # add rectangle width
+jmp area_accumulation_loop  #
 
 
 parabol:
-#fld (%eax) # put x into st0
-#fmul (%eax) # x^2
 fmul %st(0) # x^2
 fsub const_b  # subtract b factor
 ret
@@ -117,16 +91,3 @@ ret
 
 exit:
 ret
-#fld %st(2)
-#fst result
-#mov $result, %eax
-#ret
-#	movl	$SYSWRITE,%eax
-#	movl	$STDOUT,%ebx
-#	movl	$result,%ecx
-#	movl	$12,%edx
-#	int	    $0x80
-
-mov $SYSEXIT, %eax
-mov $0, %ebx
-int $0x80
