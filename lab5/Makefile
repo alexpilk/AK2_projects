@@ -2,17 +2,17 @@
 .PHONY : clean run
 .DEFAULT_GOAL := build
 
-NAME = integral
+C_CODE_PATH = main.c
+AS_CODE_PATH = integral.s
+NAME = fib
 OUTPUT_DIR = bin
 OUTPUT_PATH = ${OUTPUT_DIR}/${NAME}
 
-build: ${NAME}.o
-	ld -o ${OUTPUT_PATH} ${OUTPUT_PATH}.o
-${NAME}.o: ${NAME}.s
+build:
 	mkdir -p ${OUTPUT_DIR}
-	as -g -o ${OUTPUT_PATH}.o ${NAME}.s
-
-clean :
+	gcc -m32 -g -o ${OUTPUT_PATH} ${C_CODE_PATH} ${AS_CODE_PATH} -std=c99 -std=gnu99
+clean:
+	-rm ${NAME}.o
 	-rm -rf ${OUTPUT_DIR}
 run:
 	./${OUTPUT_PATH}
