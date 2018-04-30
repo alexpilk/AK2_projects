@@ -9,10 +9,11 @@ const_b: .float 2
 A: .float 1
 B: .float 90
 N: .float 999999  # number of rectangles
+result: .float
 zero: .float 0  # number of rectangles
 one: .float 1
 
-.global _start
+.global start
 
 /*
 st0 - ongoing operations
@@ -22,10 +23,36 @@ st3 - current x
 st6 - counter
 */
 
-_start:
+start:
+
+pushl %ebp  # save frame pointer (%ebp) on the stack
+movl %esp, %ebp
+
+movl 8(%esp), %edx
+movl %edx, A
+movl 12(%esp), %edx
+movl %edx, B
+movl 16(%esp), %edx
+movl %edx, N
+
 call get_rectangle_width
 fst %st(1)  # put rect width into %st1
 call process_rectangles
+fld %st(2)
+fst result
+mov $result, %eax
+
+leave
+ret
+#	movl	$SYSWRITE,%eax
+#	movl	$STDOUT,%ebx
+#	movl	$result,%ecx
+#	movl	$12,%edx
+#	int	    $0x80
+
+#mov $SYSEXIT, %eax
+#mov $0, %ebx
+#int $0x80
 
 
 get_rectangle_width:
@@ -89,6 +116,17 @@ ret
 
 
 exit:
+ret
+#fld %st(2)
+#fst result
+#mov $result, %eax
+#ret
+#	movl	$SYSWRITE,%eax
+#	movl	$STDOUT,%ebx
+#	movl	$result,%ecx
+#	movl	$12,%edx
+#	int	    $0x80
+
 mov $SYSEXIT, %eax
 mov $0, %ebx
 int $0x80
