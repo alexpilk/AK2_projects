@@ -2,7 +2,6 @@
 A: .float 0
 B: .float 0
 N: .float 0  # number of rectangles
-result: .float 6
 zero: .float 0  # number of rectangles
 four: .float 4
 
@@ -13,8 +12,16 @@ step: .float 4, 4, 4, 4
 rectangle_width: .float 0, 0, 0, 0
 
 .global calculate_integral_sse
+.global get_timestamp
 
+get_timestamp:
+jmp _rdtscp # if switch == 1 go to rdtscp
 
+_rdtscp:
+xor %eax, %eax
+xor %edx, %edx
+rdtscp
+jmp exit
 /*
 st0 - ongoing operations
 st1 - rectangle width
@@ -45,12 +52,12 @@ calculate_integral_sse:
 	fst %st(1)  # put rectangle width into %st1
 	call process_rectangles
 	#fld %st(2)  # load accumulated area into %st0
-	fst result  # store %st0 value in $result
 
 	haddps %xmm4, %xmm5
 	haddps %xmm5, %xmm5
 	shufps $1, %xmm5, %xmm5
     movsd  %xmm5, -8(%ebp)
+    fstp A
    	fld   -8(%ebp)
     s:
     nop
@@ -73,12 +80,17 @@ process_rectangles:
 	fst %st(6)  # zero out %st6
 	fadd A  # put starting point A into %st0 (this is the first X value)
 
+	movd A, %xmm6
+	shufps $0, %xmm6, %xmm6
 
 	movups x_es, %xmm0
 	mulps %xmm3, %xmm0
-	movd A, %xmm6
-	shufps $0, %xmm6, %xmm6
 	addps %xmm6, %xmm0
+
+    movups four, %xmm7
+	shufps $0, %xmm7, %xmm7
+    mulps %xmm3, %xmm7
+    movups %xmm7, step
 
 	movups const_b, %xmm2
 
@@ -107,7 +119,8 @@ area_accumulation_loop:
 	fadd %st(1), %st(0)  # add rectangle width
     l:
 
-    addps step, %xmm0
+    addps %xmm7, %xmm0
+    k:
 	jmp area_accumulation_loop  #
 
 

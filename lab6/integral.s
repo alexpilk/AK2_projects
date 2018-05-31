@@ -1,11 +1,11 @@
 .data
-const_b: .float 2
-A: .float 0
-B: .float 0
-N: .float 0  # number of rectangles
+consttt_b: .float 2
+A1: .float 0
+B1: .float 0
+N1: .float 0  # number of rectangles
 result: .float
 zero: .float 0  # number of rectangles
-one: .float 1
+onnne: .float 1
 
 .global calculate_integral
 .global clean_registers
@@ -36,11 +36,11 @@ movl %esp, %ebp
 
 # Collect arguments
 movl 8(%esp), %edx
-movl %edx, A
+movl %edx, A1
 movl 12(%esp), %edx
-movl %edx, B
+movl %edx, B1
 movl 16(%esp), %edx
-movl %edx, N
+movl %edx, N1
 
 call get_rectangle_width
 fst %st(1)  # put rectangle width into %st1
@@ -54,9 +54,9 @@ ret
 
 
 get_rectangle_width:
-fld B  # load B into %st0
-fsub A  # subtract starting point (A) from ending point (B)
-fdiv N  # divide by the number of rectangles
+fld B1  # load B into %st0
+fsub A1  # subtract starting point (A) from ending point (B)
+fdiv N1  # divide by the number of rectangles
 ret  # store result in %st0
 
 
@@ -64,7 +64,7 @@ process_rectangles:
 fmul zero  # zero out %st0
 fst %st(2)  # zero out %st2
 fst %st(6)  # zero out %st6
-fadd A  # put starting point A into %st0 (this is the first X value)
+fadd A1  # put starting point A into %st0 (this is the first X value)
 
 area_accumulation_loop:
 fst %st(3)  # copy last X value into %st3
@@ -74,11 +74,11 @@ fadd %st(0), %st(2)  # put area into %st2
 
 fmul zero  # zero out %st0
 fadd %st(6)  # copy counter %st6 into %st0
-fadd one  # increment the counter
+fadd onnne  # increment the counter
 fst %st(6)  # put it back into %st6
 
 # FCOM example: http://www.website.masmforum.com/tutorials/fptute/fpuchap7.htm#fcom
-fcom N  # compare current counter in 5st0 to number of rectangles
+fcom N1  # compare current counter in 5st0 to number of rectangles
 fstsw %ax  # copy the Status Word containing the result to AX
 fwait  # insure the previous instruction is completed
 sahf
@@ -94,7 +94,7 @@ jmp area_accumulation_loop  #
 
 parabol:
 fmul %st(0) # x^2
-fsub const_b  # subtract b factor
+fsub consttt_b  # subtract b factor
 ret
 
 
