@@ -5,9 +5,9 @@ float calculate_integral_sse(float A, float B, float N);
 
 int main()
 {
-    float A = 8;  // starting point
-    float B = 20;  // ending point
-    float N = 64;  // number of rectangles (bigger = more precise)
+    float A = 2;  // starting point
+    float B = 14;  // ending point
+    float N = 4;  // number of rectangles (bigger = more precise)
     // printf("\n");
     // clean_registers();
     // printf("\n");
