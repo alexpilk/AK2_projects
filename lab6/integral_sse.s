@@ -7,33 +7,18 @@ four: .float 4
 
 x_es: .float 0, 1, 2, 3
 const_b: .float 2, 2, 2, 2
-one: .float 1, 1, 1, 1
-step: .float 4, 4, 4, 4
-rectangle_width: .float 0, 0, 0, 0
+rectangle_width: .float 0
 
 .global calculate_integral_sse
-.global get_timestamp
-
-get_timestamp:
-jmp _rdtscp # if switch == 1 go to rdtscp
-
-_rdtscp:
-xor %eax, %eax
-xor %edx, %edx
-rdtscp
-jmp exit
 /*
-st0 - ongoing operations
-st1 - rectangle width
-st2 - accumulated area
-st3 - current X
-st6 - counter
-
 xmm0 - x_es
 xmm1 - parabol
 xmm2 - const_b
-xmm3 - rectangle widths
-xmm4 - area
+xmm3 - rectangle widths (vectorized)
+xmm4 - current area
+xmm5 - summed area
+xmm6 - A (vectorized)
+xmm7 - step interval (vectorized)
 */
 
 calculate_integral_sse:
@@ -49,9 +34,7 @@ calculate_integral_sse:
 	movl %edx, N
 
 	call get_rectangle_width
-	fst %st(1)  # put rectangle width into %st1
 	call process_rectangles
-	#fld %st(2)  # load accumulated area into %st0
 
 	haddps %xmm4, %xmm5
 	haddps %xmm5, %xmm5
@@ -59,8 +42,7 @@ calculate_integral_sse:
     movsd  %xmm5, -8(%ebp)
     fstp A
    	fld   -8(%ebp)
-    s:
-    nop
+
 	leave
 	ret
 
@@ -70,35 +52,37 @@ get_rectangle_width:
 	fsub A  # subtract starting point (A) from ending point (B)
 	fdiv N  # divide by the number of rectangles
 	fst rectangle_width
+	# vectorize rectangle width and store it in xmm3
 	movd rectangle_width, %xmm3
 	shufps $0, %xmm3, %xmm3
-	ret  # store result in %st0
+	ret
 
 process_rectangles:
 	fmul zero  # zero out %st0
-	fst %st(2)  # zero out %st2
 	fst %st(6)  # zero out %st6
 	fadd A  # put starting point A into %st0 (this is the first X value)
 
+    # Copy A into %xmm6
 	movd A, %xmm6
 	shufps $0, %xmm6, %xmm6
 
+    # Store starting (x) points in %xmm0
 	movups x_es, %xmm0
 	mulps %xmm3, %xmm0
 	addps %xmm6, %xmm0
 
+    # Put step distance into %xmm7
     movups four, %xmm7
 	shufps $0, %xmm7, %xmm7
     mulps %xmm3, %xmm7
-    movups %xmm7, step
 
 	movups const_b, %xmm2
 
 area_accumulation_loop:
-	fst %st(3)  # copy last X value into %st3
 	call parabol
 	call get_area
-	#fadd %st(0), %st(2)  # put area into %st2
+
+	# Add current area (xmm1) to area accumulator (xmm4)
     addps %xmm1, %xmm4
 
 	fmul zero  # zero out %st0
@@ -113,15 +97,9 @@ area_accumulation_loop:
 	sahf
 	jz exit  # if counter == number of rectangles: exit
 
-	# otherwise if counter < number of rectangles:
-	fmul zero  # zero out %st0
-	fadd %st(3), %st(0)  # put last X into %st0
-	fadd %st(1), %st(0)  # add rectangle width
-    l:
-
+    # Shift X in xmm0 by step in xmm7
     addps %xmm7, %xmm0
-    k:
-	jmp area_accumulation_loop  #
+	jmp area_accumulation_loop
 
 
 parabol:
@@ -132,7 +110,6 @@ parabol:
 
 
 get_area:
-	fmul %st(1)
 	mulps %xmm3, %xmm1
 	ret
 
