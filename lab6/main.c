@@ -1,12 +1,11 @@
 #include <stdio.h>
-void clean_registers();
 float calculate_integral(float A, float B, float N);
 float calculate_integral_sse(float A, float B, float N);
 
 int main()
 {
     float A = 2;  // starting point
-    float B = 14;  // ending point
+    float B = 18;  // ending point
     float N = 4;  // number of rectangles (bigger = more precise)
     // printf("\n");
     // clean_registers();
@@ -16,7 +15,7 @@ int main()
     // printf("\n");
     // clean_registers();
     // printf("\n");
-    // float r2= calculate_integral_sse(A, B, N);
+//     float r2= calculate_integral_sse(A, B, N);
     float result_sse= calculate_integral_sse(A, B, N);
     // printf("\n");
     // clean_registers();

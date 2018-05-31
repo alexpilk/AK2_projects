@@ -3,7 +3,7 @@
 .DEFAULT_GOAL := build
 
 C_CODE_PATH = main.c
-AS_CODE_PATH = integral.s
+AS_CODE_PATH =
 SSE_CODE_PATH = integral_sse.s
 NAME = fib
 OUTPUT_DIR = bin

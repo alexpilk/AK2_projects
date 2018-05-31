@@ -1,6 +1,4 @@
 .data
-.align 16
-# const_b: .float 2
 A: .float 0
 B: .float 0
 N: .float 0  # number of rectangles
@@ -8,22 +6,13 @@ result: .float 6
 zero: .float 0  # number of rectangles
 four: .float 4
 
-
 x_es: .float 0, 1, 2, 3
 const_b: .float 2, 2, 2, 2
 one: .float 1, 1, 1, 1
 step: .float 4, 4, 4, 4
 rectangle_width: .float 0, 0, 0, 0
 
-dupa: .float 5, 0, 0, 0
-
-.section .bss
-.lcomm out, 4
-
-.section .text
-
 .global calculate_integral_sse
-.global clean_registers
 
 
 /*
@@ -61,27 +50,8 @@ calculate_integral_sse:
 	haddps %xmm4, %xmm5
 	haddps %xmm5, %xmm5
 	shufps $1, %xmm5, %xmm5
-	/*movd %xmm2, out
-	movd out, %xmm6
-
-    #mov $four, %eax
-	#fld 0(%xmm2)
-
-	shufps $1, %xmm5, %xmm5
-    movups %xmm5, out
-    /*mov out, %eax
-    mov %eax, result
-    fld out*/
-    #movsd %xmm5, -8(%ebp)
-    #fldl -8(%ebp)*/
-    #movups dupa, %xmm5
     movsd  %xmm5, -8(%ebp)
-    movsd  %xmm5, result
    	fld   -8(%ebp)
-	#fmul zero  # zero out %st0
-	#fadd -4(%ebp)  # zero out %st0
-	#fld four
-
     s:
     nop
 	leave
@@ -102,7 +72,14 @@ process_rectangles:
 	fst %st(2)  # zero out %st2
 	fst %st(6)  # zero out %st6
 	fadd A  # put starting point A into %st0 (this is the first X value)
+
+
 	movups x_es, %xmm0
+	mulps %xmm3, %xmm0
+	movd A, %xmm6
+	shufps $0, %xmm6, %xmm6
+	addps %xmm6, %xmm0
+
 	movups const_b, %xmm2
 
 area_accumulation_loop:
@@ -128,6 +105,9 @@ area_accumulation_loop:
 	fmul zero  # zero out %st0
 	fadd %st(3), %st(0)  # put last X into %st0
 	fadd %st(1), %st(0)  # add rectangle width
+    l:
+
+    addps step, %xmm0
 	jmp area_accumulation_loop  #
 
 
